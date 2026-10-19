@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 import { DEMO_COURSE_DETAIL } from "@/lib/courses/demo-data";
 import { LEVEL_LABEL } from "@/lib/courses/types";
 import {
@@ -18,8 +19,19 @@ import { APP_NAV, navActive } from "./nav";
 const ICONS = [IconHome, IconCatalog, IconBolt, IconLab, IconSettings];
 
 export function AppSidebar() {
-  const pathname = usePathname();
+  return (
+    <Suspense fallback={<Sidebar pathname="" />}>
+      <SidebarRoute />
+    </Suspense>
+  );
+}
 
+function SidebarRoute() {
+  const pathname = usePathname();
+  return <Sidebar pathname={pathname} />;
+}
+
+function Sidebar({ pathname }: { pathname: string }) {
   return (
     <aside className="panel-dark hidden w-[84px] shrink-0 flex-col rounded-[32px] p-3 text-sidebar-text md:flex lg:w-[268px] lg:p-5">
       <div className="flex items-center gap-3 px-1">

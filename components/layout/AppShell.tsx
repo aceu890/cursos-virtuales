@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { UserMenu } from "../auth/UserMenu";
 import { InstallPrompt } from "../pwa/InstallPrompt";
 import { ThemeToggle } from "../theme/ThemeToggle";
@@ -13,7 +13,7 @@ function ShellFrame({
   title,
   children,
 }: {
-  title?: string;
+  title?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -60,7 +60,20 @@ export function ShellFallback({ children }: { children: ReactNode }) {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  return (
+    <ShellFrame
+      title={
+        <Suspense fallback="Inicio">
+          <ShellTitle />
+        </Suspense>
+      }
+    >
+      {children}
+    </ShellFrame>
+  );
+}
 
-  return <ShellFrame title={sectionTitle(pathname)}>{children}</ShellFrame>;
+function ShellTitle() {
+  const pathname = usePathname();
+  return sectionTitle(pathname);
 }

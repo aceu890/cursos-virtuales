@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 import { IconBolt, IconCatalog, IconHome, IconLab, IconSettings } from "../ui/Icons";
 import { APP_NAV, navActive } from "./nav";
 
@@ -9,8 +10,19 @@ const ICONS = [IconHome, IconCatalog, IconBolt, IconLab, IconSettings];
 const TAB_LABELS = ["Inicio", "Cursos", "Míos", "Lab", "Ajustes"] as const;
 
 export function MobileNav() {
-  const pathname = usePathname();
+  return (
+    <Suspense fallback={<Dock pathname="" />}>
+      <DockRoute />
+    </Suspense>
+  );
+}
 
+function DockRoute() {
+  const pathname = usePathname();
+  return <Dock pathname={pathname} />;
+}
+
+function Dock({ pathname }: { pathname: string }) {
   return (
     <nav aria-label="Principal" className="mobile-dock md:hidden">
       <div className="mobile-dock-bar">
