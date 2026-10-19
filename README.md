@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Practica — plataforma de cursos interactivos
 
-## Getting Started
+PWA educativa (MVP) para aprender **practicando**, no solo mirando. El primer curso es **Fundamentos de electricidad**, con una lección interactiva de circuito simple.
 
-First, run the development server:
+El service worker usa **Serwist**, sucesor mantenido de Workbox, empaquetado con esbuild para convivir con el build Turbopack de Next.js 16.
+
+## Cómo ejecutar
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000). **No hace falta configurar Supabase**: sin variables de entorno la app corre en modo demo (catálogo de ejemplo y progreso en `localStorage`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Otros comandos:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run test          # motor de circuitos (Vitest)
+npm run typecheck
+npm run lint
+npm run build         # producción + iconos + service worker
+npm start
+npm run test:e2e      # opcional (Playwright; instala Chromium antes)
+```
 
-## Learn More
+## Configurar Supabase (opcional)
 
-To learn more about Next.js, take a look at the following resources:
+1. Crea un proyecto en [Supabase](https://supabase.com).
+2. Copia `.env.example` a `.env.local` y rellena:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+No uses la **service role key** en el cliente ni en ninguna variable `NEXT_PUBLIC_*`.
 
-## Deploy on Vercel
+3. En el SQL Editor (o con la CLI), ejecuta `supabase/migrations/20241008120000_init.sql`. Crea tablas, índices, RLS, el trigger de perfil al registrarse y el seed del curso.
+4. En Authentication, habilita correo/contraseña. Las páginas `/iniciar-sesion` y `/registro` ya están listas.
+5. Reinicia `npm run dev`. El aviso de modo demo desaparece. El progreso de quien inicie sesión se guarda en `lesson_progress`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Qué incluye el MVP
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Inicio, catálogo (carga / vacío / error), página de curso y lecciones
+- Lección 1 interactiva: batería, interruptor y ampolleta con React Flow
+- Motor puro `evaluateCircuit` con pruebas de circuito abierto, pieza suelta, conexión inválida y éxito
+- Progreso en localStorage (demo) o Supabase
+- PWA: `app/manifest.ts`, iconos, página `/offline`, instalación y caché de shell + lecciones visitadas
+- Touch (botones grandes) y teclado (origen/destino + Unir)
+
+## PWA / Lighthouse
+
+Tras `npm run build && npm start`:
+
+- **Verificado en el repo:** manifest (`name`, iconos 192/512, `display: standalone`, `lang: es`), service worker generado en `public/sw.js`, fallback `/offline`, `theme-color`.
+- **No verificado aquí:** auditoría Lighthouse PWA en Chrome (requiere HTTPS o localhost en tu máquina). Ejecuta Lighthouse sobre `http://localhost:3000` en producción local.
+
+## Fuera de alcance
+
+Pagos, admin, reseñas, certificados, foros y editor de cursos.

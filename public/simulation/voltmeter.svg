@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 96" fill="none">
+  <rect x="8" y="10" width="144" height="76" rx="12" fill="#1F2A36" stroke="#0B1218" stroke-width="3"/>
+  <rect x="20" y="24" width="120" height="36" rx="6" fill="#0E151C"/>
+  <text x="80" y="49" text-anchor="middle" font-family="ui-monospace, monospace" font-size="22" font-weight="700" fill="#F6D15E">V</text>
+  <circle cx="48" cy="72" r="5" fill="#C62828"/>
+  <circle cx="112" cy="72" r="5" fill="#F4F1EA" stroke="#3D4450" stroke-width="1.5"/>
+</svg>
