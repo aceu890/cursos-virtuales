@@ -780,7 +780,7 @@ export function CircuitWorkspace({
           type: "cable",
         });
       }
-      shouldFrame.current = true;
+      shouldFrame.current = nextNodes.length > 0;
       setNodes(nextNodes);
       setEdges(nextEdges);
       setPending(null);
@@ -898,10 +898,11 @@ export function CircuitWorkspace({
     if (nodesRef.current.length === 0) {
       return flow.setViewport({ x: 20, y: 16, zoom: 0.7 });
     }
+    const narrow = window.innerWidth < 768;
     return flow.fitView({
-      padding: 0.2,
+      padding: narrow ? 0.45 : 0.22,
       minZoom: 0.22,
-      maxZoom: 1.15,
+      maxZoom: narrow ? 0.85 : 1.15,
       duration,
     });
   }, []);
@@ -1283,7 +1284,7 @@ export function CircuitWorkspace({
   const board = useBoardTheme();
 
   return (
-    <div className="space-y-4">
+    <div className={sandbox ? "flex min-h-0 flex-1 flex-col gap-3" : "space-y-4"}>
       {!sandbox &&
       definition.componentesDisponibles.some((part) => {
         const used = nodes.filter((n) => n.data.kind === part.kind).length;
@@ -1308,36 +1309,38 @@ export function CircuitWorkspace({
         </div>
       ) : null}
 
-      <div className="contents">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-1">
+      <div className={sandbox ? "flex min-h-0 flex-1 flex-col gap-3" : "contents"}>
+      <div className="flex shrink-0 flex-col gap-2">
+        <div className={`min-w-0 flex-col gap-1 ${sandbox ? "hidden md:flex" : "flex"}`}>
           <CableLegend />
           {manualCables ? (
-            <p className="text-xs text-muted">
+            <p className="hidden text-xs text-muted md:block">
               Modo ordenar cables: arrastra el cable o sus puntos. El trazo
               plano sube y baja; el de pie se corre a los lados. Doble toque
               en el punto para restablecer el cable.
             </p>
           ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="btn-3d-soft pressable inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-3 text-sm">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <label className="btn-3d-soft pressable inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full px-3 text-xs md:min-h-11 md:text-sm">
             <input
               type="checkbox"
               className="h-4 w-4 rounded border-line accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               checked={showMinimap}
               onChange={(event) => setShowMinimap(event.target.checked)}
             />
-            Mostrar minimapa
+            <span className="md:hidden">Mapa</span>
+            <span className="hidden md:inline">Mostrar minimapa</span>
           </label>
-          <label className="btn-3d-soft pressable inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-3 text-sm">
+          <label className="btn-3d-soft pressable inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full px-3 text-xs md:min-h-11 md:text-sm">
             <input
               type="checkbox"
               className="h-4 w-4 rounded border-line accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               checked={manualCables}
               onChange={(event) => setManualCables(event.target.checked)}
             />
-            Ordenar cables
+            <span className="md:hidden">Cables</span>
+            <span className="hidden md:inline">Ordenar cables</span>
           </label>
           {manualCables ? (
             <Button
@@ -1362,6 +1365,7 @@ export function CircuitWorkspace({
             <>
               <Button
                 variant="secondary"
+                className="!min-h-9 !px-3 text-xs md:!min-h-11 md:!px-5 md:text-sm"
                 disabled={!canUndo}
                 aria-label="Deshacer el último borrado"
                 onClick={undoBoard}
@@ -1370,13 +1374,18 @@ export function CircuitWorkspace({
               </Button>
               <Button
                 variant="secondary"
+                className="!min-h-9 !px-3 text-xs md:!min-h-11 md:!px-5 md:text-sm"
                 disabled={!canRedo}
                 aria-label="Rehacer"
                 onClick={redoBoard}
               >
                 Rehacer
               </Button>
-              <Button variant="secondary" onClick={reset}>
+              <Button
+                variant="secondary"
+                className="!min-h-9 !px-3 text-xs md:!min-h-11 md:!px-5 md:text-sm"
+                onClick={reset}
+              >
                 Reiniciar
               </Button>
             </>
@@ -1387,7 +1396,7 @@ export function CircuitWorkspace({
       <div
         className={
           sandbox
-            ? "flex flex-col gap-4 lg:h-[min(68vh,560px)] lg:min-h-[380px] lg:flex-row lg:items-stretch"
+            ? "flex min-h-0 flex-1 flex-col-reverse gap-3 md:flex-row md:items-stretch"
             : "contents"
         }
       >
@@ -1407,16 +1416,18 @@ export function CircuitWorkspace({
         ref={boardRef}
         className={`circuit-board neu-inset rounded-3xl p-1.5 ${
           sandbox
-            ? "flex h-[min(68vh,560px)] min-h-[380px] min-w-0 flex-1 flex-col lg:h-full lg:min-h-0"
+            ? "relative flex min-h-[240px] min-w-0 flex-1 flex-col"
             : ""
         } ${cssFull ? "is-full" : ""}`}
       >
         <div
           ref={canvasRef}
-          className={`circuit-canvas relative w-full overflow-hidden rounded-[22px] ${
-            boardFull || sandbox
-              ? "h-full min-h-0 flex-1"
-              : "h-[min(68vh,560px)] min-h-[380px]"
+          className={`circuit-canvas w-full overflow-hidden rounded-[22px] ${
+            sandbox
+              ? "absolute inset-1.5"
+              : boardFull
+                ? "relative h-full min-h-0 flex-1"
+                : "relative h-[min(68vh,560px)] min-h-[380px]"
           }`}
           style={cameraReady ? undefined : { visibility: "hidden" }}
         >
@@ -1516,6 +1527,17 @@ export function CircuitWorkspace({
             }}
           >
             <Background gap={20} color={board.grid} bgColor={board.fill} />
+            <Panel position="top-left" className="circuit-undo-panel m-3">
+              <button
+                type="button"
+                className="btn-3d-soft pressable inline-flex min-h-11 cursor-pointer items-center rounded-full px-3 text-sm font-semibold text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-45"
+                disabled={!canUndo}
+                aria-label="Deshacer y devolver lo último que quitaste"
+                onClick={undoBoard}
+              >
+                Deshacer
+              </button>
+            </Panel>
             <Panel position="top-right" className="circuit-full-panel m-3">
               <button
                 type="button"
@@ -1533,10 +1555,12 @@ export function CircuitWorkspace({
                 ) : (
                   <IconExpand className="h-5 w-5" />
                 )}
-                {boardFull ? "Salir" : "Pantalla completa"}
+                <span className="hidden lg:inline">
+                  {boardFull ? "Salir" : "Pantalla completa"}
+                </span>
               </button>
             </Panel>
-            <Controls showInteractive={false} />
+            <Controls showInteractive={false} position="bottom-right" />
             {showMinimap ? (
               <MiniMap
                 pannable

@@ -7,7 +7,7 @@ const variants: Record<Variant, string> = {
   secondary: "btn-3d-soft",
   ghost: "bg-transparent text-foreground hover:bg-cream/70",
   danger:
-    "bg-danger text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.3),inset_0_-1px_0_rgb(0_0_0/0.2),0_3px_0_#8f2430,0_5px_2px_rgb(36_49_64/0.2)]",
+    "border border-danger bg-danger text-white",
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

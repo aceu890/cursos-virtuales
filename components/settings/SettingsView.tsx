@@ -1,9 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   useBoardSettings,
   type TerminalSize,
 } from "@/lib/settings/BoardSettingsProvider";
+import { applyTheme, currentTheme, type ThemeId } from "@/lib/theme/theme";
+
+const THEME_OPTIONS: Array<{
+  value: ThemeId;
+  label: string;
+  hint: string;
+}> = [
+  { value: "dark", label: "Oscuro", hint: "Gris y azul" },
+  { value: "light", label: "Claro", hint: "Fondo gris, cajas blancas y azul fuerte" },
+  {
+    value: "plano",
+    label: "Plano",
+    hint: "Fondo blanco y cajas grises",
+  },
+];
 
 const TERM_OPTIONS: Array<{
   value: TerminalSize;
@@ -26,9 +42,53 @@ export function SettingsView() {
     terminalSize,
     setTerminalSize,
   } = useBoardSettings();
+  const [theme, setTheme] = useState<ThemeId>("dark");
+
+  useEffect(() => {
+    const sync = () => setTheme(currentTheme());
+    sync();
+    window.addEventListener("practica-theme", sync);
+    return () => window.removeEventListener("practica-theme", sync);
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
+      <fieldset className="neu rounded-[24px] p-4">
+        <legend className="px-1 text-sm font-semibold">Apariencia</legend>
+        <p className="mb-3 text-xs text-muted">
+          Oscuro en gris y azul. Los claros separan bien el fondo de las cajas.
+        </p>
+        <div role="radiogroup" aria-label="Tema" className="flex flex-col gap-2">
+          {THEME_OPTIONS.map((option) => {
+            const selected = theme === option.value;
+            return (
+              <label
+                key={option.value}
+                className={`pressable flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 text-sm ${
+                  selected ? "btn-3d-soft" : "bg-transparent"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="theme"
+                  className="sr-only"
+                  value={option.value}
+                  checked={selected}
+                  onChange={() => {
+                    applyTheme(option.value);
+                    setTheme(option.value);
+                  }}
+                />
+                <span aria-hidden className={`theme-swatch theme-swatch-${option.value}`} />
+                <span>
+                  <span className="font-semibold">{option.label}</span>
+                  <span className="mt-0.5 block text-xs text-muted">{option.hint}</span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
       <fieldset className="neu rounded-[24px] p-4">
         <legend className="px-1 text-sm font-semibold">Tablero</legend>
         <label className="flex cursor-pointer items-start gap-3 text-sm">

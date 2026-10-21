@@ -3,7 +3,7 @@ import { CABLE_COLORS } from "@/lib/simulation/cables";
 export function CableLegend() {
   return (
     <div className="space-y-1">
-    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+    <ul className="flex flex-nowrap gap-x-3 gap-y-1 overflow-x-auto text-xs text-muted md:flex-wrap md:gap-x-4">
       <li className="inline-flex items-center gap-1.5">
         <span
           className="chip-3d h-2.5 w-6 rounded-full"
@@ -37,7 +37,7 @@ export function CableLegend() {
         Gris: enchufe
       </li>
     </ul>
-    <p className="text-xs text-muted">
+    <p className="hidden text-xs text-muted lg:block">
       El blanco solo vuelve al −. Entre dos ampolletas en serie el puente es
       rojo.
     </p>

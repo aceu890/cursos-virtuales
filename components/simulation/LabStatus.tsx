@@ -37,7 +37,7 @@ export function LabStatus({
 
   return (
     <div
-      className="neu rounded-2xl px-4 py-3"
+      className="neu shrink-0 rounded-2xl px-3 py-2 md:px-4 md:py-3"
       aria-live="polite"
       aria-atomic="true"
       role="status"

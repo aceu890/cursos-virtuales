@@ -7,6 +7,7 @@ import { ProgressProvider } from "@/lib/progress/ProgressProvider";
 import { BoardSettingsProvider } from "@/lib/settings/BoardSettingsProvider";
 import { RegisterPWA } from "@/components/pwa/RegisterPWA";
 import { ThemeScript } from "@/components/theme/ThemeScript";
+import { ThemeSync } from "@/components/theme/ThemeSync";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#141a22",
+  themeColor: "#2e3440",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="flex h-full min-h-0 flex-col overflow-hidden font-sans md:min-h-full md:overflow-visible">
         <RegisterPWA />
+        <ThemeSync />
         <ProgressProvider>
           <BoardSettingsProvider>
             <DemoBanner />

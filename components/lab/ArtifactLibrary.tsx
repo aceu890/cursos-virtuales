@@ -263,7 +263,7 @@ export function ArtifactLibrary({
   return (
     <aside
       ref={libraryRef}
-      className="neu flex h-[min(68vh,560px)] min-h-[380px] w-full shrink-0 flex-col overflow-hidden rounded-3xl p-3 lg:h-full lg:min-h-0 lg:w-72"
+      className="neu flex h-36 w-full shrink-0 flex-col overflow-hidden rounded-3xl p-2 md:h-auto md:min-h-0 md:w-56 md:p-3 lg:w-72"
     >
       <div
         role="tablist"
@@ -292,10 +292,10 @@ export function ArtifactLibrary({
             id="lab-panel-artefactos"
             aria-labelledby="lab-tab-artefactos"
           >
-            <p className="px-1 text-xs text-muted">
+            <p className="hidden px-1 text-xs text-muted md:block">
               Arrastra un artefacto al tablero, o púlsalo para colocarlo.
             </p>
-            <ul className="mt-3 grid grid-cols-2 content-start gap-2 lg:grid-cols-1">
+            <ul className="lab-shelf mt-1 md:mt-3">
               {ARTIFACTS.map((item) => (
                 <li key={item.kind}>
                   <button
@@ -320,13 +320,13 @@ export function ArtifactLibrary({
                       src={item.src}
                       alt=""
                       draggable={false}
-                      className="circuit-photo pointer-events-none h-16 w-full bg-transparent object-contain"
+                      className="circuit-photo pointer-events-none h-12 w-full bg-transparent object-contain md:h-16"
                     />
-                    <span className="mt-2 text-xs font-semibold">
+                    <span className="mt-2 w-full truncate text-xs font-semibold md:overflow-visible md:whitespace-normal">
                       {item.label}
                     </span>
                     {item.hint ? (
-                      <span className="mt-0.5 text-[10px] text-muted">
+                      <span className="mt-0.5 hidden text-[10px] text-muted md:block">
                         {item.hint}
                       </span>
                     ) : null}
@@ -342,11 +342,11 @@ export function ArtifactLibrary({
             id="lab-panel-testers"
             aria-labelledby="lab-tab-testers"
           >
-            <p className="px-1 text-xs text-muted">
+            <p className="hidden px-1 text-xs text-muted md:block">
               Arrastra un tester al tablero. El multímetro cambia de escala
               al pulsarlo. El detector enciende si la punta toca fase.
             </p>
-            <ul className="mt-3 grid grid-cols-2 content-start gap-2 lg:grid-cols-1">
+            <ul className="lab-shelf mt-1 md:mt-3">
               {TESTERS.map((item) => (
                 <li key={item.kind}>
                   <button
@@ -371,13 +371,13 @@ export function ArtifactLibrary({
                       src={item.src}
                       alt=""
                       draggable={false}
-                      className="circuit-photo pointer-events-none h-16 w-full bg-transparent object-contain"
+                      className="circuit-photo pointer-events-none h-12 w-full bg-transparent object-contain md:h-16"
                     />
-                    <span className="mt-2 text-xs font-semibold">
+                    <span className="mt-2 w-full truncate text-xs font-semibold md:overflow-visible md:whitespace-normal">
                       {item.label}
                     </span>
                     {item.hint ? (
-                      <span className="mt-0.5 text-[10px] text-muted">
+                      <span className="mt-0.5 hidden text-[10px] text-muted md:block">
                         {item.hint}
                       </span>
                     ) : null}
@@ -393,7 +393,7 @@ export function ArtifactLibrary({
             id="lab-panel-circuitos"
             aria-labelledby="lab-tab-circuitos"
           >
-            <p className="px-1 text-xs text-muted">
+            <p className="hidden px-1 text-xs text-muted md:block">
               Pulsa un circuito para verlo armado. Los de fallo están
               marcados: no los copies en una vivienda.
             </p>
@@ -431,11 +431,11 @@ export function ArtifactLibrary({
             id="lab-panel-electrodomesticos"
             aria-labelledby="lab-tab-electrodomesticos"
           >
-            <p className="px-1 text-xs text-muted">
+            <p className="hidden px-1 text-xs text-muted md:block">
               Arrastra un electrodoméstico al tablero, o púlsalo para
               colocarlo.
             </p>
-            <ul className="mt-3 grid grid-cols-2 content-start gap-2 lg:grid-cols-1">
+            <ul className="lab-shelf mt-1 md:mt-3">
               {APPLIANCES.map((item) => (
                 <li key={item.id}>
                   <button
@@ -461,9 +461,9 @@ export function ArtifactLibrary({
                       src={item.src}
                       alt=""
                       draggable={false}
-                      className="circuit-photo pointer-events-none h-16 w-full bg-transparent object-contain"
+                      className="circuit-photo pointer-events-none h-12 w-full bg-transparent object-contain md:h-16"
                     />
-                    <span className="mt-2 text-xs font-semibold">
+                    <span className="mt-2 w-full truncate text-xs font-semibold md:overflow-visible md:whitespace-normal">
                       {item.label}
                     </span>
                     <span className="mt-0.5 text-[10px] text-muted">

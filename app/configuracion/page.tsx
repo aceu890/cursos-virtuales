@@ -16,9 +16,7 @@ export default function ConfiguracionPage() {
         Configuración
       </h1>
       <p className="mt-3 text-muted">
-        Ajusta el tablero: el panel Unir, el borde de piezas energizadas y el
-        tamaño de los bornes. Pulsar dos bornes para conectar sigue funcionando
-        igual.
+        Elige una paleta y ajusta el tablero.
       </p>
       <div className="mt-8">
         <SettingsView />

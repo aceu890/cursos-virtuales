@@ -13,7 +13,11 @@ export function CourseCard({ course, progress }: CourseCardProps) {
   return (
     <article className="neu pressable flex h-full flex-col rounded-[28px] p-5">
       <div className="relative mb-4 h-32">
-        <div className="absolute inset-0 overflow-hidden rounded-[22px]">
+        <Link
+          href={`/cursos/${course.slug}`}
+          aria-label={course.title}
+          className="absolute inset-0 overflow-hidden rounded-[22px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
           {course.coverImage ? (
             <img
               src={course.coverImage}
@@ -29,11 +33,11 @@ export function CourseCard({ course, progress }: CourseCardProps) {
               />
             </div>
           )}
-        </div>
-        <span className="chip-3d absolute top-3 left-3 z-10 whitespace-nowrap rounded-full bg-success px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+        </Link>
+        <span className="chip-3d pointer-events-none absolute top-3 left-3 z-10 whitespace-nowrap rounded-full bg-success px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
           Gratis
         </span>
-        <span className="chip-3d absolute top-3 right-3 left-auto z-10 whitespace-nowrap rounded-full bg-surface px-3 py-1 text-xs font-semibold text-primary">
+        <span className="chip-3d pointer-events-none absolute top-3 right-3 left-auto z-10 whitespace-nowrap rounded-full bg-surface px-3 py-1 text-xs font-semibold text-primary">
           {LEVEL_LABEL[course.level]}
         </span>
       </div>

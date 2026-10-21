@@ -167,7 +167,7 @@ export function LessonCelebrate({
               </p>
               <h2
                 id={titleId}
-                className="font-display mt-2 text-3xl tracking-tight text-white"
+                className="font-display mt-2 text-3xl tracking-tight text-foreground"
               >
                 ¡Felicitaciones!
               </h2>

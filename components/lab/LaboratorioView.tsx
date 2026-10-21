@@ -11,11 +11,15 @@ const CircuitWorkspace = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="neu h-[380px] animate-pulse rounded-3xl" />
+      <div className="neu min-h-[280px] flex-1 animate-pulse rounded-3xl" />
     ),
   },
 );
 
 export function LaboratorioView() {
-  return <CircuitWorkspace definition={LABORATORIO} sandbox />;
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <CircuitWorkspace definition={LABORATORIO} sandbox />
+    </div>
+  );
 }

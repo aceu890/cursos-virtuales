@@ -24,7 +24,7 @@ function ShellFrame({
       >
         Saltar al contenido
       </a>
-      <div className="mx-auto flex min-h-0 w-full max-w-[1400px] flex-1 gap-4 overflow-hidden md:overflow-visible">
+      <div className="flex min-h-0 w-full flex-1 gap-4 overflow-hidden md:overflow-visible">
         <AppSidebar />
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:overflow-visible">
           <header className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2 pt-4 md:px-2 md:pt-2">
@@ -44,7 +44,7 @@ function ShellFrame({
           </header>
           <main
             id="contenido"
-            className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 md:px-2 md:pb-6"
+            className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-4 md:px-2 md:pb-6"
           >
             {children}
           </main>
