@@ -34,8 +34,14 @@ export function CourseCard({ course, progress }: CourseCardProps) {
             </div>
           )}
         </Link>
-        <span className="chip-3d pointer-events-none absolute top-3 left-3 z-10 whitespace-nowrap rounded-full bg-success px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
-          Gratis
+        <span
+          className={`chip-3d pointer-events-none absolute top-3 left-3 z-10 whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+            course.access === "paid"
+              ? "bg-foreground text-background"
+              : "bg-success text-white"
+          }`}
+        >
+          {course.access === "paid" ? "De pago" : "Gratis"}
         </span>
         <span className="chip-3d pointer-events-none absolute top-3 right-3 left-auto z-10 whitespace-nowrap rounded-full bg-surface px-3 py-1 text-xs font-semibold text-primary">
           {LEVEL_LABEL[course.level]}

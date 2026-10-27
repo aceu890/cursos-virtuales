@@ -9,17 +9,9 @@ export const metadata: Metadata = {
 
 export default function LaboratorioPage() {
   return (
-    <div className="flex min-h-0 flex-1 flex-col py-3 lg:py-4">
-      <div className="hidden shrink-0 lg:block">
-        <h1 className="font-display text-3xl tracking-tight">Laboratorio</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted">
-          El tablero empieza vacío y guarda lo que armes en este dispositivo.
-          En Testers están el multímetro, el detector de voltaje y los medidores.
-        </p>
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col lg:mt-4">
-        <LaboratorioView />
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <h1 className="sr-only">Laboratorio</h1>
+      <LaboratorioView />
     </div>
   );
 }

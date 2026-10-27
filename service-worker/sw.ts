@@ -14,6 +14,7 @@ const serwist = new Serwist({
     { url: "/catalogo", revision: "app-shell-1" },
     { url: "/offline", revision: "app-shell-1" },
     { url: "/configuracion", revision: "app-shell-1" },
+    { url: "/planos", revision: "app-shell-1" },
     { url: "/laboratorio", revision: "app-shell-1" },
   ],
   runtimeCaching: [

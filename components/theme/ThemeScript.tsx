@@ -8,6 +8,7 @@ const BOOTSTRAP = `
     root.classList.toggle("theme-plano", theme === "plano");
     root.classList.toggle("dark", theme === "dark");
     root.style.colorScheme = theme === "dark" ? "dark" : "light";
+    if (location.pathname === "/laboratorio") root.dataset.lab = "1";
     var side = localStorage.getItem("practica-sidebar");
     if (side === "compact") root.dataset.sidebar = "compact";
     var term = localStorage.getItem("practica.terminalSize");

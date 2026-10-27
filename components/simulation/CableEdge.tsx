@@ -1,8 +1,10 @@
 "use client";
 
-import { useReactFlow, type Edge, type EdgeProps } from "@xyflow/react";
+import { getEdgePosition } from "@xyflow/system";
+import { useReactFlow, useStore, type Edge, type EdgeProps } from "@xyflow/react";
 import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import {
+  bundleCableRoutes,
   cableRoutePoints,
   roundedPolyline,
   seedManualVia,
@@ -24,6 +26,9 @@ export type CableEdgeData = {
   targetSpread?: number;
   manual?: boolean;
   onRemove?: () => void;
+  obstacles?: Array<{ x: number; y: number; w: number; h: number }>;
+  junctionSource?: boolean;
+  junctionTarget?: boolean;
 };
 
 export type CableEdgeType = Edge<CableEdgeData, "cable">;
@@ -36,6 +41,62 @@ function bendsOf(data?: CableEdgeData): Point[] {
     return [data.pull];
   }
   return [];
+}
+
+let cachedSignature = "";
+let cachedRoutes = new Map<string, Point[]>();
+
+function bundleSignature(
+  edges: Edge[],
+  lookup: {
+    get: (id: string) =>
+      | {
+          internals?: {
+            positionAbsolute?: { x: number; y: number };
+            handleBounds?: {
+              source: Array<{ id?: string | null; x: number; y: number }> | null;
+              target: Array<{ id?: string | null; x: number; y: number }> | null;
+            } | null;
+          };
+          measured?: { width?: number; height?: number };
+        }
+      | undefined;
+  },
+) {
+  return edges
+    .map((edge) => {
+      const data = edge.data as CableEdgeData | undefined;
+      const mark = (id: string) => {
+        const node = lookup.get(id);
+        const place = node?.internals?.positionAbsolute;
+        const handles = [
+          ...(node?.internals?.handleBounds?.source ?? []),
+          ...(node?.internals?.handleBounds?.target ?? []),
+        ];
+        return [
+          Math.round(place?.x ?? 0),
+          Math.round(place?.y ?? 0),
+          Math.round(node?.measured?.width ?? 0),
+          Math.round(node?.measured?.height ?? 0),
+          handles
+            .map((handle) => `${handle.id ?? ""}@${Math.round(handle.x)},${Math.round(handle.y)}`)
+            .join(","),
+        ].join("/");
+      };
+      const vias = bendsOf(data);
+      return [
+        edge.id,
+        edge.sourceHandle ?? "",
+        edge.targetHandle ?? "",
+        data?.laneOffset ?? 0,
+        data?.sourceSpread ?? 0,
+        data?.targetSpread ?? 0,
+        vias.map((point) => `${Math.round(point.x)},${Math.round(point.y)}`).join(";"),
+        mark(edge.source),
+        mark(edge.target),
+      ].join(":");
+    })
+    .join("|");
 }
 
 export function CableEdge({
@@ -57,6 +118,9 @@ export function CableEdge({
   const color = CABLE_COLORS[role];
   const manual = Boolean(data?.manual);
   const vias = bendsOf(data);
+  const nodeLookup = useStore((state) => state.nodeLookup);
+  const flowEdges = useStore((state) => state.edges);
+  const connectionMode = useStore((state) => state.connectionMode);
   const routeOpts = {
     sourceX,
     sourceY,
@@ -67,9 +131,50 @@ export function CableEdge({
     lane: data?.laneOffset ?? 0,
     sourceSpread: data?.sourceSpread ?? 0,
     targetSpread: data?.targetSpread ?? 0,
+    obstacles: data?.obstacles,
   };
-  const routePoints = cableRoutePoints({ ...routeOpts, vias });
-  const path = roundedPolyline(routePoints, 12);
+  const signature = bundleSignature(flowEdges, nodeLookup);
+  if (signature !== cachedSignature) {
+    const items = [];
+    for (const edge of flowEdges) {
+      const sourceNode = nodeLookup.get(edge.source);
+      const targetNode = nodeLookup.get(edge.target);
+      if (!sourceNode || !targetNode) {
+        continue;
+      }
+      const place = getEdgePosition({
+        id: edge.id,
+        sourceNode,
+        sourceHandle: edge.sourceHandle ?? null,
+        targetNode,
+        targetHandle: edge.targetHandle ?? null,
+        connectionMode,
+      });
+      if (!place) {
+        continue;
+      }
+      const edgeData = edge.data as CableEdgeData | undefined;
+      const edgeVias = bendsOf(edgeData);
+      items.push({
+        id: edge.id,
+        sourceX: place.sourceX,
+        sourceY: place.sourceY,
+        targetX: place.targetX,
+        targetY: place.targetY,
+        sourcePosition: place.sourcePosition as HandleSide,
+        targetPosition: place.targetPosition as HandleSide,
+        lane: edgeData?.laneOffset ?? 0,
+        sourceSpread: edgeData?.sourceSpread ?? 0,
+        targetSpread: edgeData?.targetSpread ?? 0,
+        obstacles: edgeData?.obstacles,
+        vias: edgeVias.length > 0 ? edgeVias : undefined,
+      });
+    }
+    cachedSignature = signature;
+    cachedRoutes = items.length > 0 ? bundleCableRoutes(items) : new Map();
+  }
+  const routePoints = cachedRoutes.get(id) ?? cableRoutePoints({ ...routeOpts, vias });
+  const path = roundedPolyline(routePoints, 6);
 
   const writeBends = (next: Point[] | undefined) => {
     setEdges((current) =>
@@ -169,8 +274,8 @@ export function CableEdge({
       <path
         d={path}
         fill="none"
-        stroke="#1F1812"
-        strokeWidth={selected ? 11 : 9}
+        stroke={selected ? "var(--primary)" : "#1F1812"}
+        strokeWidth={selected ? 13 : 9}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -196,6 +301,12 @@ export function CableEdge({
           />
           <LiveBeads path={path} powered={powered} />
         </>
+      ) : null}
+      {data?.junctionSource ? (
+        <circle cx={sourceX} cy={sourceY} r={5} fill="#1a1a1a" className="pointer-events-none" />
+      ) : null}
+      {data?.junctionTarget ? (
+        <circle cx={targetX} cy={targetY} r={5} fill="#1a1a1a" className="pointer-events-none" />
       ) : null}
       <path
         d={path}

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { isSupabaseConfigured } from "@/lib/env";
 import { fetchCourseSummaries } from "@/lib/courses/queries";
-import { DEMO_COURSE_DETAIL, DEMO_COURSES } from "@/lib/courses/demo-data";
+import { demoCourseBySlug, DEMO_COURSES } from "@/lib/courses/demo-data";
 import { coursePercent, type CourseSummary } from "@/lib/courses/types";
 import { useProgress } from "@/lib/progress/ProgressProvider";
 import { CourseCard } from "./CourseCard";
@@ -85,7 +85,7 @@ export function CatalogView() {
     return (
       <EmptyState
         title="Todavía no hay cursos"
-        body="Cuando se publique el primero, aparecerá aquí. En modo demo deberías ver Fundamentos de electricidad."
+        body="Cuando se publique el primero, aparecerá aquí. En modo demo deberías ver Fundamentos de electricidad y Electricidad domiciliaria."
       />
     );
   }
@@ -93,12 +93,9 @@ export function CatalogView() {
   return (
     <div className="grid gap-5 sm:grid-cols-2">
       {courses.map((course) => {
+        const detail = demoCourseBySlug(course.slug);
         const progress =
-          ready &&
-          (course.slug === DEMO_COURSE_DETAIL.slug ||
-            course.id === DEMO_COURSE_DETAIL.id)
-            ? coursePercent(DEMO_COURSE_DETAIL, completedIds)
-            : undefined;
+          ready && detail ? coursePercent(detail, completedIds) : undefined;
         return (
           <CourseCard key={course.id} course={course} progress={progress} />
         );

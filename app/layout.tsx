@@ -48,12 +48,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       data-term-size="md"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${plusJakarta.variable} dark h-full overflow-hidden md:overflow-auto antialiased`}
+      className={`${plusJakarta.variable} dark h-dvh overflow-hidden antialiased`}
     >
       <head>
         <ThemeScript />
       </head>
-      <body className="flex h-full min-h-0 flex-col overflow-hidden font-sans md:min-h-full md:overflow-visible">
+      <body className="flex h-dvh min-h-0 flex-col overflow-hidden font-sans">
         <RegisterPWA />
         <ThemeSync />
         <ProgressProvider>

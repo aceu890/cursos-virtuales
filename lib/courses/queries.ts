@@ -16,7 +16,10 @@ import { MEDIR_CORRIENTE } from "../simulation/lessons/medir-corriente";
 import { MEDIR_TENSION } from "../simulation/lessons/medir-tension";
 import { TENSION_Y_CORRIENTE } from "../simulation/lessons/tension-y-corriente";
 import { TIERRA_DE_PROTECCION } from "../simulation/lessons/tierra-de-proteccion";
-import { DEMO_COURSE_DETAIL, DEMO_COURSES } from "./demo-data";
+import { DOMICILIARIA_ARTICLES } from "./articles/domiciliaria";
+import { DOMICILIARIA_LESSONS } from "../simulation/lessons/domiciliaria";
+import { demoCourseBySlug, DEMO_COURSES } from "./demo-data";
+import { courseAccess } from "./types";
 import type {
   ArticleContent,
   CourseDetail,
@@ -28,7 +31,6 @@ import type {
   ModuleWithLessons,
 } from "./types";
 import {
-  COURSE_ELECTRICIDAD_SLUG,
   LESSON_CAMINO_CERRADO_SLUG,
   LESSON_CIRCUITO_SIMPLE_SLUG,
   LESSON_COLORES_SLUG,
@@ -65,6 +67,7 @@ const INTERACTIVE_LESSONS: Record<string, CircuitLessonDefinition> = {
   [LESSON_INTERRUPTOR_FASE_SLUG]: INTERRUPTOR_EN_FASE,
   [LESSON_TOMACORRIENTE_SLUG]: EL_TOMACORRIENTE,
   [LESSON_PILA_RED_SLUG]: DE_LA_PILA_A_LA_RED,
+  ...DOMICILIARIA_LESSONS,
 };
 
 interface CourseRow {
@@ -106,6 +109,10 @@ function parseContent(
 ): LessonContent {
   if (type === "interactive") {
     return INTERACTIVE_LESSONS[slug ?? ""] ?? CIRCUITO_SIMPLE;
+  }
+  const known = DOMICILIARIA_ARTICLES[slug ?? ""];
+  if (known) {
+    return known;
   }
   const content = raw as ArticleContent | null;
   if (content && Array.isArray(content.blocks)) {
@@ -185,6 +192,7 @@ export async function fetchCourseSummaries(): Promise<CourseSummary[]> {
       coverImage: course.cover_image,
       published: course.published,
       sortOrder: course.sort_order,
+      access: courseAccess(course.slug),
       moduleCount: courseModules.length,
       lessonCount,
     };
@@ -195,12 +203,12 @@ export async function fetchCourseBySlug(
   slug: string,
 ): Promise<CourseDetail | null> {
   if (!isSupabaseConfigured()) {
-    return slug === COURSE_ELECTRICIDAD_SLUG ? DEMO_COURSE_DETAIL : null;
+    return demoCourseBySlug(slug);
   }
 
   const supabase = createBrowserSupabase();
   if (!supabase) {
-    return slug === COURSE_ELECTRICIDAD_SLUG ? DEMO_COURSE_DETAIL : null;
+    return demoCourseBySlug(slug);
   }
 
   const { data: course, error } = await supabase
@@ -268,6 +276,7 @@ export async function fetchCourseBySlug(
     coverImage: courseRow.cover_image,
     published: courseRow.published,
     sortOrder: courseRow.sort_order,
+    access: courseAccess(courseRow.slug),
     modules: withLessons,
   };
 }

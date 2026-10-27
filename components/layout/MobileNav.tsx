@@ -3,11 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
-import { IconBolt, IconCatalog, IconHome, IconLab, IconSettings } from "../ui/Icons";
+import {
+  IconBolt,
+  IconCatalog,
+  IconHome,
+  IconLab,
+  IconPlan,
+  IconSettings,
+} from "../ui/Icons";
 import { APP_NAV, navActive } from "./nav";
 
-const ICONS = [IconHome, IconCatalog, IconBolt, IconLab, IconSettings];
-const TAB_LABELS = ["Inicio", "Cursos", "Míos", "Lab", "Ajustes"] as const;
+const ICONS = [IconHome, IconCatalog, IconBolt, IconPlan, IconLab, IconSettings];
+const TAB_LABELS = ["Inicio", "Cursos", "Míos", "Planos", "Lab", "Ajustes"] as const;
 
 export function MobileNav() {
   return (
@@ -25,7 +32,10 @@ function DockRoute() {
 function Dock({ pathname }: { pathname: string }) {
   return (
     <nav aria-label="Principal" className="mobile-dock md:hidden">
-      <div className="mobile-dock-bar">
+      <div
+        className="mobile-dock-bar"
+        style={{ gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}
+      >
         {APP_NAV.map((item, index) => {
           const Icon = ICONS[index];
           const active = navActive(pathname, item.href);

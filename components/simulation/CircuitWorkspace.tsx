@@ -29,6 +29,7 @@ import {
   assignLaneOffsets,
   assignTerminalSpreads,
 } from "@/lib/simulation/cableLanes";
+import { placeSchematic } from "@/lib/simulation/schematicLayout";
 import {
   canConnectTerminals,
   cableRoleFromMap,
@@ -56,6 +57,7 @@ import { CableEdge } from "./CableEdge";
 import { CableLegend } from "./CableLegend";
 import { FeedbackPanel } from "./FeedbackPanel";
 import { LabStatus } from "./LabStatus";
+import { SelectionPanel } from "./SelectionPanel";
 import { circuitNodeTypes } from "./nodeTypes";
 import { ArtifactLibrary } from "../lab/ArtifactLibrary";
 import { useBoardSettings } from "@/lib/settings/BoardSettingsProvider";
@@ -245,13 +247,18 @@ export function CircuitWorkspace({
     [],
   );
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [selection, setSelection] = useState<{
+    nodeId: string | null;
+    edgeId: string | null;
+    extra: number;
+  }>({ nodeId: null, edgeId: null, extra: 0 });
   const [pending, setPending] = useState<{
     nodeId: string;
     terminalId: string;
   } | null>(null);
   const [fromSelect, setFromSelect] = useState("");
   const [toSelect, setToSelect] = useState("");
-  const { connectWithoutDrag, showLiveBorders, manualCables, setManualCables } =
+  const { connectWithoutDrag, showLiveBorders } =
     useBoardSettings();
   const [interacted, setInteracted] = useState(false);
   const [showedSolution, setShowedSolution] = useState(false);
@@ -732,11 +739,12 @@ export function CircuitWorkspace({
       }
       const size = NODE_SPAN[kind];
       const point = flow.screenToFlowPosition({ x: clientX, y: clientY });
+      const snap = (value: number) => Math.round(value / 20) * 20;
       addPart(
         kind,
         {
-          x: point.x - size.w / 2,
-          y: point.y - size.h / 2,
+          x: snap(point.x - size.w / 2),
+          y: snap(point.y - size.h / 2),
         },
         extra,
       );
@@ -779,6 +787,23 @@ export function CircuitWorkspace({
           targetHandle: cable.to.terminalId,
           type: "cable",
         });
+      }
+      const placed = placeSchematic(
+        nextNodes.map((node) => ({
+          id: node.id,
+          kind: node.data.kind,
+          ...(NODE_SPAN[node.data.kind as PlaceableKind] ?? { w: 200, h: 180 }),
+        })),
+        nextEdges.map((edge) => ({
+          source: edge.source,
+          target: edge.target,
+        })),
+      );
+      for (const node of nextNodes) {
+        const position = placed.get(node.id);
+        if (position) {
+          node.position = position;
+        }
       }
       shouldFrame.current = nextNodes.length > 0;
       setNodes(nextNodes);
@@ -996,7 +1021,21 @@ export function CircuitWorkspace({
           (result.vivos ?? result.energizados).includes(node.id);
         return {
           ...node,
-          className: live ? "node-is-live" : undefined,
+          className: node.selected
+            ? live
+              ? "is-picked node-is-live"
+              : "is-picked"
+            : live
+              ? "node-is-live"
+              : undefined,
+          style: node.selected
+            ? {
+                ...node.style,
+                outline: "3px solid var(--primary)",
+                outlineOffset: "4px",
+                borderRadius: "18px",
+              }
+            : node.style,
           data: {
             ...node.data,
             live,
@@ -1059,6 +1098,35 @@ export function CircuitWorkspace({
     });
     const lanes = assignLaneOffsets(roles);
     const spreads = assignTerminalSpreads(edges);
+    const obstacles = nodes.map((node) => {
+      const span =
+        NODE_SPAN[node.data.kind as PlaceableKind] ?? { w: 200, h: 180 };
+      const width = node.measured?.width ?? span.w;
+      const height = node.measured?.height ?? span.h;
+      return {
+        x: node.position.x - 18,
+        y: node.position.y - 18,
+        w: width + 36,
+        h: height + 36,
+      };
+    });
+    const junctionOwner = new Map<string, string>();
+    const grouped = new Map<string, string[]>();
+    for (const edge of edges) {
+      for (const key of [
+        `${edge.source}::${edge.sourceHandle ?? ""}`,
+        `${edge.target}::${edge.targetHandle ?? ""}`,
+      ]) {
+        const list = grouped.get(key) ?? [];
+        list.push(edge.id);
+        grouped.set(key, list);
+      }
+    }
+    for (const [key, ids] of grouped) {
+      if (ids.length >= 3) {
+        junctionOwner.set(key, ids.slice().sort()[0] ?? "");
+      }
+    }
     return edges.map((edge, index) => {
       const role = roles[index]?.role ?? "fase";
       const spread = spreads.get(edge.id);
@@ -1073,17 +1141,38 @@ export function CircuitWorkspace({
           bends: (
             edge.data as { bends?: Array<{ x: number; y: number }> } | undefined
           )?.bends,
-          manual: manualCables,
           laneOffset: lanes.get(edge.id) ?? 0,
           sourceSpread: spread?.source ?? 0,
           targetSpread: spread?.target ?? 0,
+          obstacles,
+          junctionSource:
+            junctionOwner.get(`${edge.source}::${edge.sourceHandle ?? ""}`) ===
+            edge.id,
+          junctionTarget:
+            junctionOwner.get(`${edge.target}::${edge.targetHandle ?? ""}`) ===
+            edge.id,
           onRemove: () => handlersRef.current.remove(edge.id),
         },
         animated: false,
-        zIndex: manualCables ? 1000 : undefined,
       };
     });
-  }, [conductorRoles, edges, manualCables, result.estado]);
+  }, [conductorRoles, edges, nodes, result.estado]);
+
+  const selectedNode =
+    displayNodes.find((node) => node.id === selection.nodeId) ?? null;
+  const selectedEdge = selectedNode
+    ? null
+    : (displayEdges.find((edge) => edge.id === selection.edgeId) ?? null);
+
+  function clearSelection() {
+    setSelection({ nodeId: null, edgeId: null, extra: 0 });
+    setNodes((current) =>
+      current.map((node) => ({ ...node, selected: false })),
+    );
+    setEdges((current) =>
+      current.map((edge) => ({ ...edge, selected: false })),
+    );
+  }
 
   const terminalOptions = nodes.flatMap((node) =>
     connectableTerminals(node).map((terminal) => ({
@@ -1284,7 +1373,7 @@ export function CircuitWorkspace({
   const board = useBoardTheme();
 
   return (
-    <div className={sandbox ? "flex min-h-0 flex-1 flex-col gap-3" : "space-y-4"}>
+    <div className={sandbox ? "flex h-full min-h-0 flex-1 flex-col gap-3" : "space-y-4"}>
       {!sandbox &&
       definition.componentesDisponibles.some((part) => {
         const used = nodes.filter((n) => n.data.kind === part.kind).length;
@@ -1309,18 +1398,32 @@ export function CircuitWorkspace({
         </div>
       ) : null}
 
-      <div className={sandbox ? "flex min-h-0 flex-1 flex-col gap-3" : "contents"}>
+      <div
+        className={
+          sandbox
+            ? "flex min-h-0 flex-1 flex-col-reverse gap-3 md:flex-row md:items-stretch"
+            : "contents"
+        }
+      >
+      {sandbox ? (
+        <ArtifactLibrary
+          onAdd={(kind, extra) => addPart(kind, undefined, extra)}
+          onPlace={placeFromLibrary}
+          isOverBoard={isOverBoard}
+          selectedCircuitId={loadedCircuitId}
+          onLoadCircuit={(id, layout) => {
+            setLoadedCircuitId(id);
+            applyLayout(layout, false);
+          }}
+        />
+      ) : null}
+      <div className={sandbox ? "flex min-h-[280px] min-w-0 flex-1 flex-col gap-2 md:min-h-0" : "contents"}>
       <div className="flex shrink-0 flex-col gap-2">
-        <div className={`min-w-0 flex-col gap-1 ${sandbox ? "hidden md:flex" : "flex"}`}>
+        {sandbox ? null : (
+        <div className="flex min-w-0 flex-col gap-1">
           <CableLegend />
-          {manualCables ? (
-            <p className="hidden text-xs text-muted md:block">
-              Modo ordenar cables: arrastra el cable o sus puntos. El trazo
-              plano sube y baja; el de pie se corre a los lados. Doble toque
-              en el punto para restablecer el cable.
-            </p>
-          ) : null}
         </div>
+        )}
         <div className="flex flex-wrap items-center gap-1.5">
           <label className="btn-3d-soft pressable inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full px-3 text-xs md:min-h-11 md:text-sm">
             <input
@@ -1332,35 +1435,6 @@ export function CircuitWorkspace({
             <span className="md:hidden">Mapa</span>
             <span className="hidden md:inline">Mostrar minimapa</span>
           </label>
-          <label className="btn-3d-soft pressable inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full px-3 text-xs md:min-h-11 md:text-sm">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-line accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              checked={manualCables}
-              onChange={(event) => setManualCables(event.target.checked)}
-            />
-            <span className="md:hidden">Cables</span>
-            <span className="hidden md:inline">Ordenar cables</span>
-          </label>
-          {manualCables ? (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setEdges((current) =>
-                  current.map((edge) => ({
-                    ...edge,
-                    data: {
-                      ...edge.data,
-                      bends: undefined,
-                      pull: undefined,
-                    },
-                  })),
-                );
-              }}
-            >
-              Restablecer cables
-            </Button>
-          ) : null}
           {sandbox ? (
             <>
               <Button
@@ -1394,29 +1468,10 @@ export function CircuitWorkspace({
       </div>
 
       <div
-        className={
-          sandbox
-            ? "flex min-h-0 flex-1 flex-col-reverse gap-3 md:flex-row md:items-stretch"
-            : "contents"
-        }
-      >
-      {sandbox ? (
-        <ArtifactLibrary
-          onAdd={(kind, extra) => addPart(kind, undefined, extra)}
-          onPlace={placeFromLibrary}
-          isOverBoard={isOverBoard}
-          selectedCircuitId={loadedCircuitId}
-          onLoadCircuit={(id, layout) => {
-            setLoadedCircuitId(id);
-            applyLayout(layout, false);
-          }}
-        />
-      ) : null}
-      <div
         ref={boardRef}
         className={`circuit-board neu-inset rounded-3xl p-1.5 ${
           sandbox
-            ? "relative flex min-h-[240px] min-w-0 flex-1 flex-col"
+            ? "relative flex min-h-0 min-w-0 flex-1 flex-col"
             : ""
         } ${cssFull ? "is-full" : ""}`}
       >
@@ -1433,6 +1488,8 @@ export function CircuitWorkspace({
         >
           <ReactFlow
             colorMode="light"
+            snapToGrid
+            snapGrid={[20, 20]}
             nodes={displayNodes}
             edges={displayEdges}
             onNodesChange={(changes) => {
@@ -1508,8 +1565,22 @@ export function CircuitWorkspace({
               setFlowReady(true);
             }}
             deleteKeyCode={["Backspace", "Delete"]}
+            elementsSelectable
+            selectNodesOnDrag={false}
             nodesFocusable
             edgesFocusable
+            onSelectionChange={({ nodes: pickedNodes, edges: pickedEdges }) => {
+              const nodeId = pickedNodes.at(-1)?.id ?? null;
+              const edgeId = nodeId ? null : (pickedEdges.at(-1)?.id ?? null);
+              const extra = nodeId ? Math.max(0, pickedNodes.length - 1) : 0;
+              setSelection((current) =>
+                current.nodeId === nodeId &&
+                current.edgeId === edgeId &&
+                current.extra === extra
+                  ? current
+                  : { nodeId, edgeId, extra },
+              );
+            }}
             aria-label="Tablero del circuito"
             isValidConnection={(connection) => {
               if (
@@ -1577,7 +1648,17 @@ export function CircuitWorkspace({
             </p>
           ) : null}
         </div>
-      </div>
+        {sandbox && (selectedNode || selectedEdge) ? (
+          <SelectionPanel
+            variant="sheet"
+            node={selectedNode}
+            edge={selectedEdge}
+            nodes={displayNodes}
+            edges={displayEdges}
+            extra={selection.extra}
+            onClear={clearSelection}
+          />
+        ) : null}
       </div>
 
       {sandbox ? (
@@ -1645,6 +1726,19 @@ export function CircuitWorkspace({
           </div>
         </fieldset>
       ) : null}
+      </div>
+      {sandbox ? (
+        <SelectionPanel
+          variant="dock"
+          node={selectedNode}
+          edge={selectedEdge}
+          nodes={displayNodes}
+          edges={displayEdges}
+          extra={selection.extra}
+          onClear={clearSelection}
+        />
+      ) : null}
+      </div>
 
       {sandbox ? null : (
         <>
@@ -1689,7 +1783,6 @@ export function CircuitWorkspace({
           />
         </>
       )}
-      </div>
     </div>
   );
 }

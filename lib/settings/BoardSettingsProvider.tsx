@@ -13,8 +13,6 @@ import {
 const CONNECT_KEY = "practica.connectWithoutDrag";
 const TERM_SIZE_KEY = "practica.terminalSize";
 const LIVE_BORDERS_KEY = "practica.liveBorders";
-const MANUAL_CABLES_KEY = "practica.manualCables";
-
 export const TERMINAL_SIZES = ["sm", "md", "lg"] as const;
 export type TerminalSize = (typeof TERMINAL_SIZES)[number];
 
@@ -31,8 +29,6 @@ interface BoardSettingsValue {
   setConnectWithoutDrag: (value: boolean) => void;
   showLiveBorders: boolean;
   setShowLiveBorders: (value: boolean) => void;
-  manualCables: boolean;
-  setManualCables: (value: boolean) => void;
   terminalSize: TerminalSize;
   setTerminalSize: (value: TerminalSize) => void;
 }
@@ -42,13 +38,11 @@ const BoardSettingsContext = createContext<BoardSettingsValue | null>(null);
 export function BoardSettingsProvider({ children }: { children: ReactNode }) {
   const [connectWithoutDrag, setConnectWithoutDragState] = useState(false);
   const [showLiveBorders, setShowLiveBordersState] = useState(false);
-  const [manualCables, setManualCablesState] = useState(false);
   const [terminalSize, setTerminalSizeState] = useState<TerminalSize>("md");
 
   useEffect(() => {
     setConnectWithoutDragState(localStorage.getItem(CONNECT_KEY) === "1");
     setShowLiveBordersState(localStorage.getItem(LIVE_BORDERS_KEY) === "1");
-    setManualCablesState(localStorage.getItem(MANUAL_CABLES_KEY) === "1");
     const stored = localStorage.getItem(TERM_SIZE_KEY);
     const size = isTerminalSize(stored) ? stored : "md";
     setTerminalSizeState(size);
@@ -65,11 +59,6 @@ export function BoardSettingsProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(LIVE_BORDERS_KEY, value ? "1" : "0");
   }, []);
 
-  const setManualCables = useCallback((value: boolean) => {
-    setManualCablesState(value);
-    localStorage.setItem(MANUAL_CABLES_KEY, value ? "1" : "0");
-  }, []);
-
   const setTerminalSize = useCallback((value: TerminalSize) => {
     setTerminalSizeState(value);
     localStorage.setItem(TERM_SIZE_KEY, value);
@@ -82,8 +71,6 @@ export function BoardSettingsProvider({ children }: { children: ReactNode }) {
       setConnectWithoutDrag,
       showLiveBorders,
       setShowLiveBorders,
-      manualCables,
-      setManualCables,
       terminalSize,
       setTerminalSize,
     }),
@@ -92,8 +79,6 @@ export function BoardSettingsProvider({ children }: { children: ReactNode }) {
       setConnectWithoutDrag,
       showLiveBorders,
       setShowLiveBorders,
-      manualCables,
-      setManualCables,
       terminalSize,
       setTerminalSize,
     ],

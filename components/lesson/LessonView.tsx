@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { isSupabaseConfigured } from "@/lib/env";
-import { DEMO_COURSE_DETAIL } from "@/lib/courses/demo-data";
+import { demoCourseBySlug } from "@/lib/courses/demo-data";
 import { fetchCourseBySlug } from "@/lib/courses/queries";
 import { flattenLessons, type CourseDetail, type Lesson } from "@/lib/courses/types";
 import { CourseCardSkeleton } from "../catalog/CourseCardSkeleton";
@@ -24,11 +24,7 @@ export function LessonView({
     undefined,
   );
   const [error, setError] = useState<string | null>(null);
-  const course = demo
-    ? slug === DEMO_COURSE_DETAIL.slug
-      ? DEMO_COURSE_DETAIL
-      : null
-    : remote;
+  const course = demo ? demoCourseBySlug(slug) : remote;
 
   const load = useCallback(() => {
     return fetchCourseBySlug(slug)

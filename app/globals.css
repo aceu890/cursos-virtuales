@@ -340,7 +340,7 @@ a.nav-3d-on {
 
 .mobile-dock-bar {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   min-height: 64px;
 }
 
@@ -417,6 +417,19 @@ a.nav-3d-on {
   border: 1px solid #c8ccd4;
 }
 
+.circuit-canvas .react-flow__node.selected,
+.circuit-canvas .react-flow__node:focus,
+.circuit-canvas .react-flow__node:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.circuit-canvas .react-flow__node.selected .node-3d,
+.is-picked .node-3d {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 55%, transparent);
+}
+
 .node-live-ring {
   position: absolute !important;
   top: 5px !important;
@@ -456,11 +469,20 @@ button.node-remove.node-power {
   left: 0 !important;
   border-radius: 1rem 0 0.7rem 0 !important;
   box-shadow: none;
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+button.node-remove.node-power[aria-pressed="true"] {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
 }
 
 button.node-remove.node-power:disabled {
   cursor: not-allowed !important;
-  opacity: 0.45;
+  opacity: 0.72;
 }
 
 .node-remove:hover,
@@ -991,6 +1013,15 @@ button.lab-tab:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: 6px 6px 0 0;
+}
+
+html[data-lab] .shell-header {
+  display: none !important;
+}
+
+html[data-lab] #contenido {
+  padding: 0 !important;
+  overflow: hidden;
 }
 
 @media (min-width: 1024px) {

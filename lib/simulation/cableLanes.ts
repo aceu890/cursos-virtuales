@@ -1,14 +1,8 @@
 import type { CableRole } from "./cables";
 
-export const CABLE_GAP = 48;
-export const TERMINAL_GAP = 22;
-
-export const ROLE_LANE: Record<CableRole, number> = {
-  fase: -72,
-  neutro: 56,
-  tierra: 124,
-  enchufe: 0,
-};
+/** Más ancho que el trazo de 9 px, para que un cable no tape al de al lado. */
+export const CABLE_GAP = 20;
+export const TERMINAL_GAP = 20;
 
 export function laneBase(index: number, total: number, gap = CABLE_GAP) {
   if (total <= 1) {
@@ -32,11 +26,11 @@ export function assignLaneOffsets(
   }
 
   const lanes = new Map<string, number>();
-  (Object.keys(grouped) as CableRole[]).forEach((role) => {
-    const ids = grouped[role].slice().sort();
-    ids.forEach((id, index) => {
-      lanes.set(id, ROLE_LANE[role] + laneBase(index, ids.length));
-    });
+  const ordered = (Object.keys(grouped) as CableRole[]).flatMap((role) =>
+    grouped[role].slice().sort(),
+  );
+  ordered.forEach((id, index) => {
+    lanes.set(id, index * CABLE_GAP);
   });
   return lanes;
 }

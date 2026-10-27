@@ -37,8 +37,6 @@ export function SettingsView() {
     setConnectWithoutDrag,
     showLiveBorders,
     setShowLiveBorders,
-    manualCables,
-    setManualCables,
     terminalSize,
     setTerminalSize,
   } = useBoardSettings();
@@ -119,21 +117,6 @@ export function SettingsView() {
             <span className="mt-1 block text-xs text-muted">
               Un recuadro punteado dorado marca las piezas que tienen tensión,
               aunque el circuito esté abierto. Por defecto está apagado.
-            </span>
-          </span>
-        </label>
-        <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm">
-          <input
-            type="checkbox"
-            className="mt-1 h-4 w-4 rounded border-line accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            checked={manualCables}
-            onChange={(event) => setManualCables(event.target.checked)}
-          />
-          <span>
-            <span className="font-semibold">Ordenar cables a mano</span>
-            <span className="mt-1 block text-xs text-muted">
-              En el tablero aparecen puntos para mover cada cable en
-              horizontal o vertical. Doble toque en un punto para quitarlo.
             </span>
           </span>
         </label>

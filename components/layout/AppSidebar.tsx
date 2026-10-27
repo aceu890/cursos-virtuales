@@ -10,13 +10,14 @@ import {
   IconCatalog,
   IconHome,
   IconLab,
+  IconPlan,
   IconSettings,
   IconUser,
 } from "../ui/Icons";
 import { SectionArt } from "../ui/SectionArt";
 import { APP_NAV, navActive } from "./nav";
 
-const ICONS = [IconHome, IconCatalog, IconBolt, IconLab, IconSettings];
+const ICONS = [IconHome, IconCatalog, IconBolt, IconPlan, IconLab, IconSettings];
 const SIDEBAR_KEY = "practica-sidebar";
 
 function IconSidebarChevron({ compact }: { compact: boolean }) {
@@ -66,7 +67,7 @@ function Sidebar({ pathname }: { pathname: string }) {
   }
 
   return (
-    <aside className="app-sidebar panel-dark relative hidden w-[84px] shrink-0 flex-col overflow-visible rounded-[32px] p-3 text-sidebar-text md:flex lg:w-[268px] lg:p-5">
+    <aside className="app-sidebar panel-dark relative hidden w-[84px] shrink-0 flex-col overflow-visible rounded-[32px] p-3 text-sidebar-text md:flex md:h-full md:min-h-0 md:self-stretch lg:w-[268px] lg:p-5">
       <button
         type="button"
         className="sidebar-toggle pressable absolute top-1/2 right-0 z-30 hidden h-7 w-7 -translate-y-1/2 translate-x-1/2 place-items-center rounded-full border border-line bg-sidebar text-sidebar-muted hover:bg-cream hover:text-sidebar-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:grid"

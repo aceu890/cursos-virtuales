@@ -430,6 +430,30 @@ export function IconCompress({ className }: IconProps) {
   );
 }
 
+export function IconPlan({ className }: IconProps) {
+  return (
+    <ClayMark className={className} tone="sun">
+      {({ body, deep }) => (
+        <>
+          <path
+            d="M5 4.2h14.2v15.6H5Z"
+            fill={`url(#${deep})`}
+            transform="translate(0.7 0.8)"
+          />
+          <path d="M5 4.2h14.2v15.6H5Z" fill={`url(#${body})`} />
+          <path
+            d="M5 12h14.2M12 4.2V19.8"
+            fill="none"
+            stroke="#1a1c1f"
+            strokeWidth="1.3"
+            strokeLinejoin="round"
+          />
+        </>
+      )}
+    </ClayMark>
+  );
+}
+
 export function IconLab({ className }: IconProps) {
   return (
     <ClayMark className={className} tone="teal">

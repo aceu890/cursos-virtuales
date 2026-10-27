@@ -17,17 +17,17 @@ function ShellFrame({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:min-h-full md:overflow-visible md:p-3 lg:p-4">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden md:p-3 lg:p-4">
       <a
         href="#contenido"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
       >
         Saltar al contenido
       </a>
-      <div className="flex min-h-0 w-full flex-1 gap-4 overflow-hidden md:overflow-visible">
+      <div className="flex min-h-0 w-full flex-1 gap-4 overflow-hidden">
         <AppSidebar />
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:overflow-visible">
-          <header className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2 pt-4 md:px-2 md:pt-2">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="shell-header flex shrink-0 items-center justify-between gap-3 px-4 pb-2 pt-4 md:px-2 md:pt-2">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
                 Practica

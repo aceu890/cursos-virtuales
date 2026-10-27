@@ -14,8 +14,11 @@ import { MEDIR_CORRIENTE } from "../simulation/lessons/medir-corriente";
 import { MEDIR_TENSION } from "../simulation/lessons/medir-tension";
 import { TENSION_Y_CORRIENTE } from "../simulation/lessons/tension-y-corriente";
 import { TIERRA_DE_PROTECCION } from "../simulation/lessons/tierra-de-proteccion";
+import { DOMICILIARIA_MODULES } from "../simulation/lessons/domiciliaria";
 import type { CircuitLessonDefinition } from "../simulation/flowTypes";
 import {
+  COURSE_DOMICILIARIA_ID,
+  COURSE_DOMICILIARIA_SLUG,
   COURSE_ELECTRICIDAD_ID,
   COURSE_ELECTRICIDAD_SLUG,
   LESSON_CAMINO_CERRADO_ID,
@@ -55,7 +58,12 @@ import {
   MODULE_PRACTICAS_ID,
   MODULE_SERIE_PARALELO_ID,
 } from "./ids";
-import type { CourseDetail, CourseSummary, Lesson } from "./types";
+import type {
+  CourseDetail,
+  CourseSummary,
+  Lesson,
+  LessonContent,
+} from "./types";
 
 function interactive(
   id: string,
@@ -66,13 +74,35 @@ function interactive(
   content: CircuitLessonDefinition,
   sortOrder: number,
 ): Lesson {
+  return catalogLesson(
+    id,
+    moduleId,
+    slug,
+    title,
+    description,
+    "interactive",
+    content,
+    sortOrder,
+  );
+}
+
+function catalogLesson(
+  id: string,
+  moduleId: string,
+  slug: string,
+  title: string,
+  description: string,
+  lessonType: Lesson["lessonType"],
+  content: LessonContent,
+  sortOrder: number,
+): Lesson {
   return {
     id,
     moduleId,
     slug,
     title,
     description,
-    lessonType: "interactive",
+    lessonType,
     content,
     sortOrder,
     published: true,
@@ -90,6 +120,7 @@ export const DEMO_COURSE_DETAIL: CourseDetail = {
   coverImage: "/illustrations/banner-electricidad.jpg",
   published: true,
   sortOrder: 1,
+  access: "free",
   modules: [
     {
       id: MODULE_CIRCUITO_ID,
@@ -274,18 +305,63 @@ export const DEMO_COURSE_DETAIL: CourseDetail = {
   ],
 };
 
-export const DEMO_COURSES: CourseSummary[] = [
-  {
-    id: DEMO_COURSE_DETAIL.id,
-    slug: DEMO_COURSE_DETAIL.slug,
-    title: DEMO_COURSE_DETAIL.title,
-    description: DEMO_COURSE_DETAIL.description,
-    level: DEMO_COURSE_DETAIL.level,
-    estimatedMinutes: DEMO_COURSE_DETAIL.estimatedMinutes,
-    coverImage: DEMO_COURSE_DETAIL.coverImage,
-    published: DEMO_COURSE_DETAIL.published,
-    sortOrder: DEMO_COURSE_DETAIL.sortOrder,
-    lessonCount: 16,
-    moduleCount: 4,
-  },
-];
+export const DEMO_DOMICILIARIA_DETAIL: CourseDetail = {
+  id: COURSE_DOMICILIARIA_ID,
+  slug: COURSE_DOMICILIARIA_SLUG,
+  title: "Electricidad domiciliaria",
+  description:
+    "Curso de pago. Primero la teoría: tensión, corriente, resistencia, potencia y la red alterna. Después, en el tablero, la acometida, las protecciones, la luz, el enchufe, la medición y los fallos de una vivienda. En esta práctica puedes recorrerlo entero.",
+  level: "intermedio",
+  estimatedMinutes: 240,
+  coverImage: "/illustrations/curso-electricidad.png",
+  published: true,
+  sortOrder: 2,
+  access: "paid",
+  modules: DOMICILIARIA_MODULES.map((module) => ({
+    id: module.id,
+    courseId: COURSE_DOMICILIARIA_ID,
+    title: module.title,
+    description: module.description,
+    sortOrder: module.sortOrder,
+    lessons: module.lessons.map((lesson, index) =>
+      catalogLesson(
+        lesson.id,
+        module.id,
+        lesson.slug,
+        lesson.title,
+        lesson.description,
+        lesson.lessonType,
+        lesson.content,
+        index + 1,
+      ),
+    ),
+  })),
+};
+
+const DEMO_DETAILS = [DEMO_COURSE_DETAIL, DEMO_DOMICILIARIA_DETAIL];
+
+export function demoCourseBySlug(slug: string): CourseDetail | null {
+  return DEMO_DETAILS.find((course) => course.slug === slug) ?? null;
+}
+
+function toSummary(detail: CourseDetail): CourseSummary {
+  return {
+    id: detail.id,
+    slug: detail.slug,
+    title: detail.title,
+    description: detail.description,
+    level: detail.level,
+    estimatedMinutes: detail.estimatedMinutes,
+    coverImage: detail.coverImage,
+    published: detail.published,
+    sortOrder: detail.sortOrder,
+    access: detail.access,
+    lessonCount: detail.modules.reduce(
+      (count, module) => count + module.lessons.length,
+      0,
+    ),
+    moduleCount: detail.modules.length,
+  };
+}
+
+export const DEMO_COURSES: CourseSummary[] = DEMO_DETAILS.map(toSummary);

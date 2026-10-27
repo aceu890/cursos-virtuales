@@ -1,7 +1,13 @@
 import type { CircuitLessonDefinition } from "../simulation/flowTypes";
+import { COURSE_DOMICILIARIA_SLUG } from "./ids";
 
 export type CourseLevel = "principiante" | "intermedio" | "avanzado";
+export type CourseAccess = "free" | "paid";
 export type LessonType = "interactive" | "article";
+
+export function courseAccess(slug: string): CourseAccess {
+  return slug === COURSE_DOMICILIARIA_SLUG ? "paid" : "free";
+}
 
 export interface Course {
   id: string;
@@ -13,6 +19,7 @@ export interface Course {
   coverImage: string | null;
   published: boolean;
   sortOrder: number;
+  access: CourseAccess;
 }
 
 export interface CourseModule {

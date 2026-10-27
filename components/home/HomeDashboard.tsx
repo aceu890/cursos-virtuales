@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { DEMO_COURSE_DETAIL, DEMO_COURSES } from "@/lib/courses/demo-data";
+import {
+  DEMO_COURSE_DETAIL,
+  DEMO_COURSES,
+  DEMO_DOMICILIARIA_DETAIL,
+} from "@/lib/courses/demo-data";
 import {
   LEVEL_LABEL,
   coursePercent,
@@ -36,7 +40,7 @@ export function HomeDashboard() {
     {
       label: "Cursos",
       value: String(DEMO_COURSES.length),
-      note: DEMO_COURSE_DETAIL.title,
+      note: "1 gratis · 1 de pago",
       icon: IconBolt,
     },
     {
@@ -233,12 +237,20 @@ export function HomeDashboard() {
           <p className="mt-2 text-sm leading-relaxed text-muted">
             {DEMO_COURSE_DETAIL.description}
           </p>
-          <Link
-            href={`/cursos/${DEMO_COURSE_DETAIL.slug}`}
-            className="btn-3d pressable mt-5 inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            Ver el curso
-          </Link>
+          <div className="mt-5 flex flex-col items-start gap-3">
+            <Link
+              href={`/cursos/${DEMO_COURSE_DETAIL.slug}`}
+              className="btn-3d pressable inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              Ver el curso
+            </Link>
+            <Link
+              href={`/cursos/${DEMO_DOMICILIARIA_DETAIL.slug}`}
+              className="text-sm font-semibold text-primary"
+            >
+              Curso de pago: {DEMO_DOMICILIARIA_DETAIL.title}
+            </Link>
+          </div>
         </article>
       </section>
 

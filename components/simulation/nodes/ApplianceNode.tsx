@@ -35,7 +35,7 @@ export function ApplianceNode({ data }: NodeProps<ApplianceFlowNode>) {
       <LiveRing active={data.live} />
       <AppliancePowerButton
         label={data.label}
-        on={on}
+        on={switchedOn}
         hasSupply={hasSupply}
         onToggle={data.onToggleSwitch}
       />

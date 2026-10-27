@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured } from "@/lib/env";
-import { DEMO_COURSE_DETAIL } from "@/lib/courses/demo-data";
+import { demoCourseBySlug } from "@/lib/courses/demo-data";
 import { fetchCourseBySlug } from "@/lib/courses/queries";
 import {
   LEVEL_LABEL,
@@ -24,11 +24,7 @@ export function CourseView({ slug }: { slug: string }) {
     undefined,
   );
   const [error, setError] = useState<string | null>(null);
-  const course = demo
-    ? slug === DEMO_COURSE_DETAIL.slug
-      ? DEMO_COURSE_DETAIL
-      : null
-    : remote;
+  const course = demo ? demoCourseBySlug(slug) : remote;
 
   const load = useCallback(() => {
     return fetchCourseBySlug(slug)
@@ -123,8 +119,14 @@ export function CourseView({ slug }: { slug: string }) {
             alt=""
             className="h-44 w-full object-cover sm:h-60"
           />
-          <span className="chip-3d absolute left-4 top-4 rounded-full bg-success px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
-            Gratis
+          <span
+            className={`chip-3d absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+              course.access === "paid"
+                ? "bg-foreground text-background"
+                : "bg-success text-white"
+            }`}
+          >
+            {course.access === "paid" ? "De pago" : "Gratis"}
           </span>
         </div>
       ) : null}

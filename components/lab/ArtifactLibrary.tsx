@@ -263,7 +263,7 @@ export function ArtifactLibrary({
   return (
     <aside
       ref={libraryRef}
-      className="neu flex h-36 w-full shrink-0 flex-col overflow-hidden rounded-3xl p-2 md:h-auto md:min-h-0 md:w-56 md:p-3 lg:w-72"
+      className="neu flex h-36 w-full shrink-0 flex-col overflow-hidden rounded-3xl p-2 md:h-full md:min-h-0 md:w-56 md:shrink-0 md:self-stretch md:p-3 lg:w-72"
     >
       <div
         role="tablist"

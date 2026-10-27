@@ -1,3 +1,6 @@
+import { orthogonalWaypoints, type RouteRect } from "./orthogonalRoute";
+import { separateRoutes } from "./separateRoutes";
+
 export type Point = { x: number; y: number };
 
 export type HandleSide = "left" | "right" | "top" | "bottom";
@@ -26,11 +29,18 @@ function almostEqual(a: number, b: number, eps = 0.6) {
   return Math.abs(a - b) < eps;
 }
 
+function between(a: number, b: number, c: number) {
+  return (a <= b && b <= c) || (c <= b && b <= a);
+}
+
 function collinear(a: Point, b: Point, c: Point) {
-  return (
-    (almostEqual(a.x, b.x) && almostEqual(b.x, c.x)) ||
-    (almostEqual(a.y, b.y) && almostEqual(b.y, c.y))
-  );
+  if (almostEqual(a.x, b.x) && almostEqual(b.x, c.x)) {
+    return between(a.y, b.y, c.y);
+  }
+  if (almostEqual(a.y, b.y) && almostEqual(b.y, c.y)) {
+    return between(a.x, b.x, c.x);
+  }
+  return false;
 }
 
 function collapseColinear(points: Point[]): Point[] {
@@ -131,86 +141,6 @@ function stubExit(
   };
 }
 
-/** Fase pegada al artefacto; neutro y tierra un pasillo más afuera. */
-export function aisleShift(lane: number) {
-  if (lane < 0) {
-    return 0;
-  }
-  if (lane < 90) {
-    return 40;
-  }
-  return 80;
-}
-
-function isEarthLane(lane: number) {
-  return lane >= 90;
-}
-
-function takesHighRoad(lane: number) {
-  return lane >= 0;
-}
-
-function outsideX(out: Point, inn: Point, lane: number) {
-  return Math.max(out.x, inn.x) + 36 + Math.abs(lane) * 0.5;
-}
-
-function facingRoom(
-  sourceX: number,
-  targetX: number,
-  sourceY: number,
-  targetY: number,
-  sourceSide: HandleSide,
-  targetSide: HandleSide,
-) {
-  if (sourceSide === "right" && targetSide === "left" && targetX > sourceX) {
-    return (targetX - sourceX) / 2;
-  }
-  if (sourceSide === "left" && targetSide === "right" && sourceX > targetX) {
-    return (sourceX - targetX) / 2;
-  }
-  if (sourceSide === "bottom" && targetSide === "top" && targetY > sourceY) {
-    return (targetY - sourceY) / 2;
-  }
-  if (sourceSide === "top" && targetSide === "bottom" && sourceY > targetY) {
-    return (sourceY - targetY) / 2;
-  }
-  return Number.POSITIVE_INFINITY;
-}
-
-function facesAway(
-  sourceX: number,
-  targetX: number,
-  sourceY: number,
-  targetY: number,
-  sourceSide: HandleSide,
-  targetSide: HandleSide,
-) {
-  if (sourceSide === targetSide) {
-    return true;
-  }
-  if (sourceSide === "right" && targetSide === "left" && sourceX > targetX) {
-    return true;
-  }
-  if (sourceSide === "left" && targetSide === "right" && sourceX < targetX) {
-    return true;
-  }
-  if (
-    sourceSide === "bottom" &&
-    targetSide === "top" &&
-    sourceY > targetY + 28
-  ) {
-    return true;
-  }
-  if (
-    sourceSide === "top" &&
-    targetSide === "bottom" &&
-    sourceY < targetY - 28
-  ) {
-    return true;
-  }
-  return false;
-}
-
 export function cableWaypoints(opts: {
   sourceX: number;
   sourceY: number;
@@ -221,126 +151,9 @@ export function cableWaypoints(opts: {
   lane: number;
   sourceSpread?: number;
   targetSpread?: number;
+  obstacles?: Array<{ x: number; y: number; w: number; h: number }>;
 }): Point[] {
-  const {
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    sourcePosition,
-    targetPosition,
-    lane,
-    sourceSpread = 0,
-    targetSpread = 0,
-  } = opts;
-  const startDir = dirOf(sourcePosition);
-  const room = facingRoom(
-    sourceX,
-    targetX,
-    sourceY,
-    targetY,
-    sourcePosition,
-    targetPosition,
-  );
-  const wanted = 36;
-  const stub = Number.isFinite(room)
-    ? Math.max(8, Math.min(wanted, Math.max(8, room - 6)))
-    : wanted;
-  const shift = aisleShift(lane);
-
-  const start = { x: sourceX, y: sourceY };
-  const end = { x: targetX, y: targetY };
-  const sourceExit = stubExit(
-    sourceX,
-    sourceY,
-    sourcePosition,
-    stub,
-    sourceSpread,
-  );
-  const targetExit = stubExit(
-    targetX,
-    targetY,
-    targetPosition,
-    stub,
-    targetSpread,
-  );
-  const out = sourceExit.out;
-  const inn = targetExit.out;
-
-  const points: Point[] = [start, sourceExit.flared, out];
-  const sideJump =
-    !isHorizontal(sourcePosition) &&
-    !isHorizontal(targetPosition) &&
-    Math.abs(targetX - sourceX) > 60;
-
-  if (sourcePosition === "top" && targetPosition === "top") {
-    if (isEarthLane(lane)) {
-      const bandX = outsideX(out, inn, lane);
-      points.push({ x: bandX, y: out.y }, { x: bandX, y: inn.y });
-    } else {
-      const bandY = Math.min(out.y, inn.y) - 72 - shift;
-      points.push({ x: out.x, y: bandY }, { x: inn.x, y: bandY });
-    }
-  } else if (sourcePosition === "bottom" && targetPosition === "bottom") {
-    const bandY = Math.max(out.y, inn.y) + 56 + shift;
-    points.push({ x: out.x, y: bandY }, { x: inn.x, y: bandY });
-  } else if (sideJump) {
-    const dir = targetX > sourceX ? 1 : -1;
-    const aisleX = (sourceX + targetX) / 2 + dir * (takesHighRoad(lane) ? 30 : -30);
-    if (isEarthLane(lane)) {
-      const bandX = outsideX(out, inn, lane);
-      points.push({ x: bandX, y: out.y }, { x: bandX, y: inn.y });
-    } else if (takesHighRoad(lane)) {
-      const bandY = Math.min(out.y, inn.y) - 72 - shift;
-      points.push(
-        { x: aisleX, y: out.y },
-        { x: aisleX, y: bandY },
-        { x: inn.x, y: bandY },
-      );
-    } else {
-      points.push({ x: aisleX, y: out.y }, { x: aisleX, y: inn.y });
-    }
-  } else if (
-    facesAway(
-      sourceX,
-      targetX,
-      sourceY,
-      targetY,
-      sourcePosition,
-      targetPosition,
-    )
-  ) {
-    const wrapHorizontally =
-      isHorizontal(sourcePosition) || isHorizontal(targetPosition);
-    if (wrapHorizontally) {
-      const bandY =
-        lane < 0
-          ? Math.min(out.y, inn.y) - 58 - Math.abs(lane)
-          : Math.max(out.y, inn.y) + 58 + Math.abs(lane);
-      points.push({ x: out.x, y: bandY }, { x: inn.x, y: bandY });
-    } else {
-      const bandX =
-        lane < 0
-          ? Math.min(out.x, inn.x) - 58 - Math.abs(lane)
-          : Math.max(out.x, inn.x) + 58 + Math.abs(lane);
-      points.push({ x: bandX, y: out.y }, { x: bandX, y: inn.y });
-    }
-  } else if (isHorizontal(sourcePosition) && isHorizontal(targetPosition)) {
-    const midX = (out.x + inn.x) / 2 + (shift - 13) * 0.35;
-    points.push({ x: midX, y: out.y }, { x: midX, y: inn.y });
-  } else if (!isHorizontal(sourcePosition) && !isHorizontal(targetPosition)) {
-    const midY = (out.y + inn.y) / 2;
-    points.push({ x: out.x, y: midY }, { x: inn.x, y: midY });
-  } else if (isHorizontal(sourcePosition)) {
-    const aisleX = out.x + startDir.x * shift;
-    points.push({ x: aisleX, y: out.y }, { x: aisleX, y: inn.y });
-  } else {
-    const aisleY = out.y + startDir.y * shift;
-    points.push({ x: out.x, y: aisleY }, { x: inn.x, y: aisleY });
-  }
-
-  points.push(inn, targetExit.flared, end);
-  return collapseColinear(points);
+  return orthogonalWaypoints(opts);
 }
 
 export type SegmentAxis = "h" | "v";
@@ -462,6 +275,27 @@ export function cableRoutePoints(
     : cableWaypoints(opts);
 }
 
+/** Traza todos los cables juntos y separa los tramos que quedarían tapados. */
+export function bundleCableRoutes(
+  items: Array<Parameters<typeof cableRoutePoints>[0] & { id: string; lane: number }>,
+): Map<string, Point[]> {
+  const ordered = items
+    .slice()
+    .sort((a, b) => a.lane - b.lane || a.id.localeCompare(b.id));
+  const routed = ordered.map((item) => cableRoutePoints(item));
+  const obstacles = ordered.reduce<RouteRect[]>(
+    (best, item) =>
+      (item.obstacles?.length ?? 0) > best.length ? (item.obstacles ?? best) : best,
+    [],
+  );
+  const separated = separateRoutes(routed, obstacles);
+  const map = new Map<string, Point[]>();
+  ordered.forEach((item, index) => {
+    map.set(item.id, separated[index] ?? routed[index] ?? []);
+  });
+  return map;
+}
+
 function elbowScore(points: Point[], via: Point) {
   let horizontal = 0;
   let vertical = 0;
@@ -515,7 +349,7 @@ export function manhattanThrough(
     sourceSpread = 0,
     targetSpread = 0,
   } = opts;
-  const stub = 36;
+  const stub = 20;
   const start = { x: sourceX, y: sourceY };
   const end = { x: targetX, y: targetY };
   const sourceExit = stubExit(
@@ -573,5 +407,5 @@ export function orderedCablePath(
     vias?: Point[];
   },
 ): string {
-  return roundedPolyline(cableRoutePoints(opts), opts.radius ?? 12);
+  return roundedPolyline(cableRoutePoints(opts), opts.radius ?? 6);
 }

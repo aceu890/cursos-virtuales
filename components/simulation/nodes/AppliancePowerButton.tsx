@@ -34,8 +34,13 @@ export function AppliancePowerButton({
       aria-disabled={disabled}
       disabled={disabled}
       className={`node-remove node-power nodrag nopan !top-0 !left-0 !right-auto grid place-items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-        on ? "text-success" : "text-muted"
-      } ${disabled ? "cursor-not-allowed opacity-45" : ""}`}
+        disabled ? "cursor-not-allowed" : ""
+      }`}
+      style={{
+        background: on ? "var(--success)" : "var(--danger)",
+        borderColor: on ? "var(--success)" : "var(--danger)",
+        color: "#fff",
+      }}
       onPointerDown={(event) => {
         event.stopPropagation();
       }}

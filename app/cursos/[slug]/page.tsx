@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CourseView } from "@/components/course/CourseView";
-import { DEMO_COURSE_DETAIL } from "@/lib/courses/demo-data";
+import { demoCourseBySlug } from "@/lib/courses/demo-data";
 
 export async function generateMetadata({
   params,
@@ -8,10 +8,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const title =
-    slug === DEMO_COURSE_DETAIL.slug
-      ? DEMO_COURSE_DETAIL.title
-      : "Mis cursos";
+  const title = demoCourseBySlug(slug)?.title ?? "Mis cursos";
   return { title };
 }
 
